@@ -133,25 +133,21 @@ inline bool operator != (const U& lhs, const span<T>& rhs) {
     return !( lhs == rhs );
 }
 
-
-using byte_t      = char;
-using bytes_view  = span<const byte_t>;
-
 // bytes_view serializer specialization
-template<typename DataStream>
-inline DataStream& operator<<(DataStream& ds, const bytes_view& data) {
-    ds << eosio::unsigned_int( data.size() );
-    ds.write( data.data(), data.size() );
-    return ds;
-}
+// template<typename DataStream>
+// inline DataStream& operator<<(DataStream& ds, const bytes_view& data) {
+//     ds << eosio::unsigned_int( data.size() );
+//     ds.write( data.data(), data.size() );
+//     return ds;
+// }
 
-template<typename DataStream>
-inline DataStream& operator>>(DataStream& ds, bytes_view& data) {
-    eosio::unsigned_int s;
-    ds >> s;
-    if constexpr ( !std::is_same_v<eosio::datastream<size_t>, DataStream> ) {
-        data = bytes_view{ (const byte_t*)ds.pos(), s };
-    }
-    ds.skip( s );
-    return ds;
-}
+// template<typename DataStream>
+// inline DataStream& operator>>(DataStream& ds, bytes_view& data) {
+//     eosio::unsigned_int s;
+//     ds >> s;
+//     if constexpr ( !std::is_same_v<eosio::datastream<size_t>, DataStream> ) {
+//         data = bytes_view{ (const byte_t*)ds.pos(), s };
+//     }
+//     ds.skip( s );
+//     return ds;
+// }
