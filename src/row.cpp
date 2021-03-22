@@ -1,6 +1,8 @@
 #include <eosio/action.hpp>
 #include <eosio/permission.hpp>
 
+#include <numeric>
+
 #include <row.hpp>
 #include <span.hpp>
 
@@ -23,10 +25,10 @@ bool is_tx_authorized(const std::vector<permission_level>& approvals, const std:
 
 template<typename Function>
 std::vector<permission_level> get_approvals_and_adjust_table(name self, name proposer, name proposal_name, Function&& table_op) {
-   row::approvals apptable( self, proposer.value );
-   auto& auths = apptable.get( proposal_name.value, "proposal not found" );
-   std::vector<permission_level> auth_list;
-   //invalidations invalidations_table( self, self.value );
+    row::approvals apptable( self, proposer.value );
+    auto& auths = apptable.get( proposal_name.value, "proposal not found" );
+    std::vector<permission_level> auth_list;
+    //invalidations invalidations_table( self, self.value );
 
 
     auth_list.reserve( auths.provided_approvals.size() );
@@ -37,7 +39,7 @@ std::vector<permission_level> get_approvals_and_adjust_table(name self, name pro
         //}
     }
     table_op( apptable, auths );
-   return auth_list;
+    return auth_list;
 }
 
 
@@ -126,9 +128,9 @@ void row::approve( name proposer, name proposal_name)
 
     // set execution delay to time of first approval + transaction delay
     transaction_header tx_header = unpack<transaction_header>( proposal.packed_transaction );//get_trx_header(proposal.packed_transaction.data(), proposal.packed_transaction.size());
-    if( !proposal.earliest_exec_time.has_value() ) {
+    if ( !proposal.earliest_exec_time.has_value() ) {
         auto table_op = [](auto&&, auto&&){};
-        if( is_tx_authorized(get_approvals_and_adjust_table(get_self(), proposer, proposal_name, table_op), proposal.packed_transaction) ) {
+        if ( is_tx_authorized(get_approvals_and_adjust_table(get_self(), proposer, proposal_name, table_op), proposal.packed_transaction) ) {
             proptable.modify( proposal, proposer, [&]( auto& p ) {
                 p.earliest_exec_time = std::optional<time_point>{ current_time_point() + eosio::seconds(tx_header.delay_sec.value)};
             });
@@ -155,30 +157,111 @@ void row::cancel( name proposer, name proposal_name, name canceler )
 
 void row::exec( name proposer, name proposal_name, name executer )
 {
-   require_auth( executer );
+    require_auth( executer );
 
-   proposals proptable( get_self(), proposer.value );
-   auto& proposal = proptable.get( proposal_name.value, "proposal not found" );
+    proposals proptable( get_self(), proposer.value );
+    auto& proposal = proptable.get( proposal_name.value, "proposal not found" );
 
-   datastream<const char*> ds = { proposal.packed_transaction.data(), proposal.packed_transaction.size() };
-   transaction_header trx_header;
-   ds >> trx_header;
-   check( trx_header.expiration >= eosio::time_point_sec(current_time_point()), "transaction expired" );
+    datastream<const char*> ds = { proposal.packed_transaction.data(), proposal.packed_transaction.size() };
+    transaction_header trx_header;
+    ds >> trx_header;
+    check( trx_header.expiration >= eosio::time_point_sec(current_time_point()), "transaction expired" );
 
-   std::vector<action> ctx_free_actions;
-   ds >> ctx_free_actions;
-   check( ctx_free_actions.empty(), "not allowed to `exec` a transaction with context-free actions" );
+    std::vector<action> ctx_free_actions;
+    ds >> ctx_free_actions;
+    check( ctx_free_actions.empty(), "not allowed to `exec` a transaction with context-free actions" );
 
-   std::vector<action> actions;
-   ds >> actions;
+    std::vector<action> actions;
+    ds >> actions;
 
-   auto table_op = [](auto&& table, auto&& e) {  };
-   bool is_auth = is_tx_authorized(get_approvals_and_adjust_table(get_self(), proposer, proposal_name, table_op), proposal.packed_transaction);
-   check( is_auth, "transaction authorization failed" );
+    auto table_op = [](auto&& table, auto&& table_iter) { table.erase(table_iter); };
+    bool is_auth = is_tx_authorized(get_approvals_and_adjust_table(get_self(), proposer, proposal_name, table_op), proposal.packed_transaction);
+    check( is_auth, "transaction authorization failed" );
 
-    for (const auto& act : actions) {
-       act.send();
+    if ( proposal.earliest_exec_time.has_value() ) {
+        check( proposal.earliest_exec_time.value() <= current_time_point(), "too early to execute" );
+    } else {
+        check( trx_header.delay_sec.value == 0, "old proposals are not allowed to have non-zero `delay_sec`; cancel and retry" );
     }
+
+    for (const auto& a : actions) {
+        a.send();
+    }
+
+    proptable.erase(proposal);
+}
+
+void row::addkey(name account, authkey key)
+{
+    //TODO: pin key to webauthn_public_key.
+    //      e.g. check(std::holds_alternative<webauthn_public_key>(key.key), "only webauthn_public_key allowed");
+    static_assert( std::is_same_v<decltype(std::declval<authority>().threshold), uint32_t> &&
+        std::is_same_v<decltype(std::declval<authority>().keys)::value_type, authkey> &&
+        std::is_same_v<decltype(std::declval<authkey>().weight), uint16_t>
+    );
+
+    require_auth(account);
+    authority_db db(_self, account.value);
+    auto auth = db.get_or_default();
+
+    check( auth.keys.size() + 1 <= (1 << 16), "too many authority keys" );
+    check( key.weight != 0, "key weight can't be zero" );
+    check( key.keyid.empty() == false, "keyid mast nopt be empty" );
+    for (const auto& k : auth.keys) {
+        check( k.key_name != key.key_name, "key already exists" );
+        check( k.key != key.key, "key already exists" );
+    }
+
+    auth.keys.push_back(std::move(key));
+    db.set(auth, account);
+}
+
+void row::removekey(name account, name key_name)
+{
+    require_auth(account);
+    authority_db db(_self, account.value);
+    check( db.exists(), "account permission authority doesn't exist" );
+    auto auth = db.get();
+
+    auto it = auth.keys.end();
+    uint32_t weights = 0;
+    for ( auto eit = auth.keys.begin(); eit != auth.keys.end(); ++eit ) {
+        if ( it->key_name == key_name ) {
+            it = eit;
+        }
+        else {
+            weights += eit->weight;
+        }
+    }
+
+    check( it != auth.keys.end(), "key doesn't exist" );
+    auth.keys.erase(it);
+    if ( auth.keys.empty() ) {
+        db.remove();
+    }
+    else {
+        if ( auth.threshold > weights ) {
+            auth.threshold = weights;
+        }
+        db.set(auth, key_name);
+    }
+}
+
+void row::sethreshold(name account, uint32_t threshold)
+{
+    require_auth(account);
+    check( threshold != 0, "threshold can't be zero" );
+
+    authority_db db(_self, account.value);
+    auto auth = db.get_or_default();
+    const auto weights = std::accumulate( auth.keys.begin(), auth.keys.end(), 0UL,
+    [](const auto result, const auto& a){
+        return result + a.weight;
+    });
+    check( threshold <= weights, "invalid threshold" );
+
+    auth.threshold = threshold;
+    db.set(auth, account);
 }
 
 [[eosio::action]] void row::hi(name nm)

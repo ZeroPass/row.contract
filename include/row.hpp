@@ -1,15 +1,36 @@
+#pragma once
 #include <optional>
+#include <vector>
 
 #include <eosio/eosio.hpp>
+#include <eosio/crypto.hpp>
 #include <eosio/multi_index.hpp>
+#include <eosio/singleton.hpp>
 #include <eosio/string.hpp>
 #include <eosio/transaction.hpp>
+
+#include "types.hpp"
 
 using namespace eosio;
 
 class [[eosio::contract]] row : public contract
 {
 public:
+    struct authkey {
+        name                          key_name;
+        public_key                    key; // due to bug in eosio.cdt key type can't be of type webauthn_public_key.
+        std::optional<time_point_sec> wait;
+        uint16_t                      weight;
+        bytes                         keyid; // webauthn credential ID
+        uint64_t primary_key() const { return key_name.value; }
+    };
+
+    struct [[eosio::table]] authority {
+        uint32_t             threshold = 1;
+        std::vector<authkey> keys;
+    };
+    using authority_db = singleton< "authority"_n, authority >;
+
     using contract::contract;
 
     [[eosio::action]]
@@ -19,10 +40,38 @@ public:
     void approve( name proposer, name proposal_name );
 
     [[eosio::action]]
-    void cancel( name proposer, name proposal_name, name canceler );
+    void cancel(name proposer, name proposal_name, name canceler);
 
     [[eosio::action]]
-    void exec( name proposer, name proposal_name, name executer );
+    void exec(name proposer, name proposal_name, name executer);
+
+    /**
+     * Action adds key to the account's authority.
+     * @param account - the name of account to remove key
+     * @param authkey - authority key
+    */
+    [[eosio::action]]
+    void addkey(name account, authkey key);
+
+    /**
+     * Action removes key from account's authority.
+     * @note if after removing key the threshold is greater than the sum of weights of remaining keys,
+     *       the threshold is lowered to the sum of weights.
+     * @note if no keys remains after removal the account0s authority entry is removed.
+     * @param account - the name of account to remove key
+     * @param key_name - the name of key to remove
+    */
+    [[eosio::action]]
+    void removekey(name account, name key_name);
+
+    /**
+     * Action sets threshold for the account's authority.
+     * @param account - the name of account
+     * @param threshold - the new account threshold.
+     *                    Treshold can be zero or greater than sum of weights of all keys.
+     */
+    [[eosio::action]]
+    void sethreshold(name account, uint32_t threshold);
 
     [[eosio::action]]
     void hi(name nm);
@@ -38,8 +87,7 @@ public:
         std::optional<time_point> earliest_exec_time;
         uint64_t primary_key()const { return proposal_name.value; }
     };
-
-    typedef eosio::multi_index< "proposals"_n, proposal > proposals;
+    using proposals = multi_index< "proposals"_n, proposal >;
 
     struct approval {
         permission_level level;
@@ -57,5 +105,5 @@ public:
 
         uint64_t primary_key()const { return proposal_name.value; }
     };
-    typedef eosio::multi_index< "approvals"_n, approvals_info > approvals;
+    using approvals = multi_index< "approvals"_n, approvals_info >;
 };
