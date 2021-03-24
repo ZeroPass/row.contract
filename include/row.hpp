@@ -74,6 +74,20 @@ public:
     void sethreshold(name account, uint32_t threshold);
 
     [[eosio::action]]
+    void testsigcheck(name account, name key_name, const eosio::checksum256& digest, const signature& signature)
+    {
+        require_auth(account);
+        authorities db(_self, account.value);
+        const auto auth = db.get();
+        auto itkey = std::find_if(auth.keys.begin(), auth.keys.end(), [key_name](const auto& k){
+            return k.key_name == key_name;
+        });
+
+        check( itkey != auth.keys.end(), "key doesn't exist in account's authority");
+        assert_recover_key(digest, signature, itkey->key);
+    }
+
+    [[eosio::action]]
     void hi(name nm);
 
     //[[eosio::action]] std::pair<int, std::string> checkwithrv(name nm);
