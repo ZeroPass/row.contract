@@ -22,14 +22,14 @@ public:
         std::optional<time_point_sec> wait;
         uint16_t                      weight;
         bytes                         keyid; // webauthn credential ID
-        uint64_t primary_key() const { return key_name.value; }
+        //uint64_t primary_key() const { return key_name.value; }
     };
 
-    struct [[eosio::table]] authority {
+    struct [[eosio::table("authorities")]] authority {
         uint32_t             threshold = 1;
         std::vector<authkey> keys;
     };
-    using authority_db = singleton< "authority"_n, authority >;
+    using authorities = singleton< "authorities"_n, authority >;
 
     using contract::contract;
 

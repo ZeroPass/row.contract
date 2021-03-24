@@ -201,7 +201,7 @@ void row::addkey(name account, authkey key)
     );
 
     require_auth(account);
-    authority_db db(_self, account.value);
+    authorities db(_self, account.value);
     auto auth = db.get_or_default();
 
     check( auth.keys.size() + 1 <= (1 << 16), "too many authority keys" );
@@ -219,7 +219,7 @@ void row::addkey(name account, authkey key)
 void row::removekey(name account, name key_name)
 {
     require_auth(account);
-    authority_db db(_self, account.value);
+    authorities db(_self, account.value);
     check( db.exists(), "account permission authority doesn't exist" );
     auto auth = db.get();
 
@@ -252,7 +252,7 @@ void row::sethreshold(name account, uint32_t threshold)
     require_auth(account);
     check( threshold != 0, "threshold can't be zero" );
 
-    authority_db db(_self, account.value);
+    authorities db(_self, account.value);
     auto auth = db.get_or_default();
     const auto weights = std::accumulate( auth.keys.begin(), auth.keys.end(), 0UL,
     [](const auto result, const auto& a){
