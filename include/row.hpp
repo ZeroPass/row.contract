@@ -22,7 +22,6 @@ public:
         std::optional<time_point_sec> wait;
         uint16_t                      weight;
         bytes                         keyid; // webauthn credential ID
-        //uint64_t primary_key() const { return key_name.value; }
     };
 
     struct [[eosio::table("authorities")]] authority {

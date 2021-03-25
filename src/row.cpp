@@ -226,7 +226,7 @@ void row::removekey(name account, name key_name)
     auto it = auth.keys.end();
     uint32_t weights = 0;
     for ( auto eit = auth.keys.begin(); eit != auth.keys.end(); ++eit ) {
-        if ( it->key_name == key_name ) {
+        if ( eit->key_name == key_name ) {
             it = eit;
         }
         else {
@@ -243,7 +243,7 @@ void row::removekey(name account, name key_name)
         if ( auth.threshold > weights ) {
             auth.threshold = weights;
         }
-        db.set(auth, key_name);
+        db.set(auth, account);
     }
 }
 
