@@ -17,11 +17,11 @@ class [[eosio::contract]] row : public contract
 {
 public:
     struct authkey {
-        name                          key_name;
-        public_key                    key; // due to bug in eosio.cdt key type can't be of type webauthn_public_key.
-        std::optional<time_point_sec> wait;
-        uint16_t                      weight;
-        bytes                         keyid; // webauthn credential ID
+        name                    key_name;
+        public_key              key;      // due to bug in eosio.cdt key type can't be of type webauthn_public_key.
+        std::optional<uint32_t> wait_sec;
+        uint16_t                weight;
+        bytes                   keyid;    // webauthn credential ID
     };
 
     struct [[eosio::table("authorities")]] authority {
@@ -33,16 +33,16 @@ public:
     using contract::contract;
 
     [[eosio::action]]
-    void propose(name proposer, name proposal_name, ignore<transaction> trx);
+    void propose(name account, name proposal_name, std::vector<name> requested_approvals, ignore<transaction> tx);
 
     [[eosio::action]]
-    void approve( name proposer, name proposal_name );
+    void approve(name account, name proposal_name, name key_name, const signature& signature);
 
     [[eosio::action]]
-    void cancel(name proposer, name proposal_name, name canceler);
+    void cancel(name account, name proposal_name);
 
     [[eosio::action]]
-    void exec(name proposer, name proposal_name, name executer);
+    void exec(name account, name proposal_name);
 
     /**
      * Action adds key to the account's authority.
@@ -88,35 +88,22 @@ public:
 
     [[eosio::action]]
     void hi(name nm);
-
-    //[[eosio::action]] std::pair<int, std::string> checkwithrv(name nm);
-
     using hi_action = action_wrapper<"hi"_n, &row::hi>;
-    //using checkwithrv_action = action_wrapper<"checkwithrv"_n, &row::checkwithrv>;
 
     struct [[eosio::table]] proposal {
         name                      proposal_name;
+        time_point                create_time;
         std::vector<char>         packed_transaction;
         std::optional<time_point> earliest_exec_time;
-        uint64_t primary_key()const { return proposal_name.value; }
+        uint64_t primary_key() const { return proposal_name.value; }
     };
     using proposals = multi_index< "proposals"_n, proposal >;
 
-    struct approval {
-        permission_level level;
-        time_point       time;
-    };
-
     struct [[eosio::table]] approvals_info {
-        uint8_t version = 1;
-        name    proposal_name;
-        //requested approval doesn't need to cointain time, but we want requested approval
-        //to be of exact the same size ad provided approval, in this case approve/unapprove
-        //doesn't change serialized data size. So, we use the same type.
-        //std::vector<approval>   requested_approvals;
-        std::vector<approval>  provided_approvals;
-
-        uint64_t primary_key()const { return proposal_name.value; }
+        name proposal_name;
+        std::vector<name> requested_approvals; // list of key_names
+        std::vector<name> provided_approvals; // list of key_names
+        uint64_t primary_key() const { return proposal_name.value; }
     };
     using approvals = multi_index< "approvals"_n, approvals_info >;
 };
