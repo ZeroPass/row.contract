@@ -49,6 +49,7 @@ void row::propose(name account, name proposal_name, std::vector<name> requested_
 {
     require_auth(account);
     check( account != _self, "I can't make proposal by myself" );
+    check( bool(proposal_name), "invalid proposal name" );
     authorities authdb(_self, account.value);
     check( authdb.exists(), "account permission authority doesn't exist" );
 
@@ -112,7 +113,7 @@ void row::approve(name account, name proposal_name, name key_name, const signatu
     auto auth = authdb.get();
     auto itkey = std::find_if(auth.keys.begin(), auth.keys.end(), [key_name](const auto& k) { return k.key_name == key_name; });
     check( itkey != auth.keys.end(), "missing authority key for provided approval" );
-    check( (proposal.create_time + seconds(itkey->wait_sec.value_or(0U))) < current_time_point(), "approval doesn't satisfy reqired wait time" );
+    check( (proposal.create_time + seconds(itkey->wait_sec.value_or(0U))) < current_time_point(), "key doesn't satisfy reqired wait time" );
     assert_recover_key( sha256(proposal.packed_transaction.data(), proposal.packed_transaction.size()), signature, itkey->key );
 
     appdb.modify( app, account, [&]( auto& a ) {
@@ -121,6 +122,7 @@ void row::approve(name account, name proposal_name, name key_name, const signatu
     });
 
     // set execution delay to time of first approval + transaction delay
+    // TODO: add check for transaction expiration
     transaction_header tx_header = unpack<transaction_header>( proposal.packed_transaction );//get_trx_header(proposal.packed_transaction.data(), proposal.packed_transaction.size());
     if ( !proposal.earliest_exec_time.has_value() ) {
         if ( is_tx_authorized( proposal.packed_transaction, get_default_permissions(account), auth, app.provided_approvals )) {
