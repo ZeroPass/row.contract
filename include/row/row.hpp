@@ -9,7 +9,8 @@
 #include <eosio/string.hpp>
 #include <eosio/transaction.hpp>
 
-#include "types.hpp"
+#include <row/crypto.hpp>
+#include <row/types.hpp>
 
 using namespace eosio;
 
@@ -18,7 +19,7 @@ class [[eosio::contract]] row : public contract
 public:
     struct authkey {
         name                    key_name;
-        public_key              key;      // due to bug in eosio.cdt key type can't be of type webauthn_public_key.
+        wa_public_key           key;
         std::optional<uint32_t> wait_sec;
         uint16_t                weight;
         bytes                   keyid;    // webauthn credential ID
@@ -36,7 +37,7 @@ public:
     void propose(name account, name proposal_name, std::vector<name> requested_approvals, ignore<transaction> tx);
 
     [[eosio::action]]
-    void approve(name account, name proposal_name, name key_name, const signature& signature);
+    void approve(name account, name proposal_name, name key_name, const wa_signature& signature);
 
     [[eosio::action]]
     void cancel(name account, name proposal_name);
@@ -73,17 +74,26 @@ public:
     void sethreshold(name account, uint32_t threshold);
 
     [[eosio::action]]
-    void testsigcheck(name account, name key_name, const eosio::checksum256& digest, const signature& signature)
+    void clrproptbl(name account)
     {
         require_auth(account);
-        authorities db(_self, account.value);
-        const auto auth = db.get();
-        auto itkey = std::find_if(auth.keys.begin(), auth.keys.end(), [key_name](const auto& k){
-            return k.key_name == key_name;
-        });
+        proposals proptable( get_self(), account.value );
+        auto pit = proptable.begin();
+        while(pit != proptable.end()) {
+            pit = proptable.erase(pit);
+        }
 
-        check( itkey != auth.keys.end(), "key doesn't exist in account's authority");
-        assert_recover_key(digest, signature, itkey->key);
+        approvals appdb( get_self(), account.value );
+        auto ait = appdb.begin();
+        while(ait != appdb.end()) {
+            ait = appdb.erase(ait);
+        }
+    }
+
+    [[eosio::action]]
+    void testwasig(wa_public_key pubkey, eosio::checksum256 signed_hash, wa_signature sig)
+    {
+        assert_wa_signature(pubkey, signed_hash, sig, "WA signature verification failed");
     }
 
     [[eosio::action]]
