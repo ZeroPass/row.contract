@@ -33,20 +33,50 @@ public:
 
     using contract::contract;
 
+    /**
+     * Action adds new transaction proposal for account.
+     * @note the accumulated weight of requested approval keys must be equal or
+     *       greater than the threshold set in the account's authority table or the action fails.
+     * @param account             - account for which to make new proposal.
+     * @param proposal_name       - the name of new proposal.
+     * @param requested_approvals - list of required keys to approve transaction.
+     * @param tx                  - proposed transaction
+    */
     [[eosio::action]]
     void propose(name account, name proposal_name, std::vector<name> requested_approvals, ignore<transaction> tx);
 
+    /**
+     * Action approve proposed transaction.
+     * @param account       - proposal owner.
+     * @param proposal_name - the name of the proposal to approve.
+     * @param key_name      - the name of key that signed the approval.
+     * @param signature     - approval WebAuthn signature of proposed transaction.
+    */
     [[eosio::action]]
     void approve(name account, name proposal_name, name key_name, const wa_signature& signature);
 
+    /**
+     * Action removes proposed transaction.
+     * @param account       - proposal owner.
+     * @param proposal_name - the name of the proposal to remove.
+     */
     [[eosio::action]]
     void cancel(name account, name proposal_name);
 
+    /**
+     * Action executes proposed transaction.
+     * @note to execute the proposed transaction,
+     *       it has to be approved first by subset of requested keys,
+     *       and the accumulated weight of approvals must reach
+     *       the threshold set in account's authority table.
+     * @param account       - proposal owner.
+     * @param proposal_name - the name of the proposal to remove.
+     */
     [[eosio::action]]
     void exec(name account, name proposal_name);
 
     /**
-     * Action adds key to the account's authority.
+     * Action adds new authority key to the account's authority table.
      * @param account - the name of account to remove key
      * @param authkey - authority key
     */
@@ -95,10 +125,6 @@ public:
     {
         assert_wa_signature(pubkey, signed_hash, sig, "WA signature verification failed");
     }
-
-    [[eosio::action]]
-    void hi(name nm);
-    using hi_action = action_wrapper<"hi"_n, &row::hi>;
 
     struct [[eosio::table]] proposal {
         name                      proposal_name;
