@@ -5,7 +5,7 @@ The contract manages user authorization permissions (authorities table), transac
 Contract also stores WebAuthn keyhandles (credentialID) for every stored authority key.
 
 There are 2 signature algorithms supported, the RSA PKCS v1.5 (RS256) signature algorithm and ECDSA P-256 (ES256) signature algorithm, using SHA-256 for hash algorithm.
-The RSA PKCS v1.5 algorithm is [build in contract](https://github.com/ZeroPass/row.contract/blob/bca79998c947455826bd56e0855581df7aa75e41/include/row/crypto.hpp#L155-L230). 
+The RSA PKCS v1.5 algorithm is [written in the contract](https://github.com/ZeroPass/row.contract/blob/bca79998c947455826bd56e0855581df7aa75e41/include/row/crypto.hpp#L155-L230). 
 
 
 # Requirements
