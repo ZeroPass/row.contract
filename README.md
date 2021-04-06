@@ -21,8 +21,8 @@ Installed eosio.cdt 1.7
 6. `make`
 
 # How to install
-Start `nodeos` with `--eos-vm-oc-enable` flag (due to RSA *)
+Start `nodeos` with `--eos-vm-oc-enable` flag (due to RSA **)
 In folder [scripts](https://github.com/ZeroPass/row.contract/tree/master/scripts) modify any script to point to valid nodeos and change account keys as needed,
 then execute script `bootstrap.sh`.
 
-* Note: Due to intensive computation requirements by RSA modular exponentiation and constrains of EOS WASM VM the nodeos has to be started in smart contract optimized compilation mode (OC).
+** Note: Due to intensive computation requirements by RSA modular exponentiation and constrains of EOS WASM VM the nodeos has to be started in smart contract optimized compilation mode (OC).
