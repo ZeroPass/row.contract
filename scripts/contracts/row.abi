@@ -1,0 +1,484 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.2",
+    "types": [
+        {
+            "new_type_name": "dsa_public_key",
+            "type": "variant_ecc_public_key_rsa_public_key"
+        },
+        {
+            "new_type_name": "ecc_public_key",
+            "type": "bytes"
+        },
+        {
+            "new_type_name": "user_presence_t",
+            "type": "uint8"
+        }
+    ],
+    "structs": [
+        {
+            "name": "action",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "name",
+                    "type": "name"
+                },
+                {
+                    "name": "authorization",
+                    "type": "permission_level[]"
+                },
+                {
+                    "name": "data",
+                    "type": "bytes"
+                }
+            ]
+        },
+        {
+            "name": "addkey",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "key",
+                    "type": "authkey"
+                }
+            ]
+        },
+        {
+            "name": "approvals_info",
+            "base": "",
+            "fields": [
+                {
+                    "name": "proposal_name",
+                    "type": "name"
+                },
+                {
+                    "name": "requested_approvals",
+                    "type": "name[]"
+                },
+                {
+                    "name": "provided_approvals",
+                    "type": "name[]"
+                }
+            ]
+        },
+        {
+            "name": "approve",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "proposal_name",
+                    "type": "name"
+                },
+                {
+                    "name": "key_name",
+                    "type": "name"
+                },
+                {
+                    "name": "signature",
+                    "type": "wa_signature"
+                }
+            ]
+        },
+        {
+            "name": "authkey",
+            "base": "",
+            "fields": [
+                {
+                    "name": "key_name",
+                    "type": "name"
+                },
+                {
+                    "name": "key",
+                    "type": "wa_public_key"
+                },
+                {
+                    "name": "wait_sec",
+                    "type": "uint32?"
+                },
+                {
+                    "name": "weight",
+                    "type": "uint16"
+                },
+                {
+                    "name": "keyid",
+                    "type": "bytes"
+                }
+            ]
+        },
+        {
+            "name": "authority",
+            "base": "",
+            "fields": [
+                {
+                    "name": "threshold",
+                    "type": "uint32"
+                },
+                {
+                    "name": "keys",
+                    "type": "authkey[]"
+                }
+            ]
+        },
+        {
+            "name": "cancel",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "proposal_name",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "clrproptbl",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "exec",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "proposal_name",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "extension",
+            "base": "",
+            "fields": [
+                {
+                    "name": "type",
+                    "type": "uint16"
+                },
+                {
+                    "name": "data",
+                    "type": "bytes"
+                }
+            ]
+        },
+        {
+            "name": "hi",
+            "base": "",
+            "fields": [
+                {
+                    "name": "nm",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "permission_level",
+            "base": "",
+            "fields": [
+                {
+                    "name": "actor",
+                    "type": "name"
+                },
+                {
+                    "name": "permission",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "proposal",
+            "base": "",
+            "fields": [
+                {
+                    "name": "proposal_name",
+                    "type": "name"
+                },
+                {
+                    "name": "create_time",
+                    "type": "time_point"
+                },
+                {
+                    "name": "packed_transaction",
+                    "type": "bytes"
+                },
+                {
+                    "name": "earliest_exec_time",
+                    "type": "time_point?"
+                }
+            ]
+        },
+        {
+            "name": "propose",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "proposal_name",
+                    "type": "name"
+                },
+                {
+                    "name": "requested_approvals",
+                    "type": "name[]"
+                },
+                {
+                    "name": "tx",
+                    "type": "transaction"
+                }
+            ]
+        },
+        {
+            "name": "removekey",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "key_name",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "rsa_public_key",
+            "base": "",
+            "fields": [
+                {
+                    "name": "modulus",
+                    "type": "bytes"
+                },
+                {
+                    "name": "exponent",
+                    "type": "bytes"
+                }
+            ]
+        },
+        {
+            "name": "sethreshold",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "threshold",
+                    "type": "uint32"
+                }
+            ]
+        },
+        {
+            "name": "testwasig",
+            "base": "",
+            "fields": [
+                {
+                    "name": "pubkey",
+                    "type": "wa_public_key"
+                },
+                {
+                    "name": "signed_hash",
+                    "type": "checksum256"
+                },
+                {
+                    "name": "sig",
+                    "type": "wa_signature"
+                }
+            ]
+        },
+        {
+            "name": "transaction",
+            "base": "transaction_header",
+            "fields": [
+                {
+                    "name": "context_free_actions",
+                    "type": "action[]"
+                },
+                {
+                    "name": "actions",
+                    "type": "action[]"
+                },
+                {
+                    "name": "transaction_extensions",
+                    "type": "extension[]"
+                }
+            ]
+        },
+        {
+            "name": "transaction_header",
+            "base": "",
+            "fields": [
+                {
+                    "name": "expiration",
+                    "type": "time_point_sec"
+                },
+                {
+                    "name": "ref_block_num",
+                    "type": "uint16"
+                },
+                {
+                    "name": "ref_block_prefix",
+                    "type": "uint32"
+                },
+                {
+                    "name": "max_net_usage_words",
+                    "type": "varuint32"
+                },
+                {
+                    "name": "max_cpu_usage_ms",
+                    "type": "uint8"
+                },
+                {
+                    "name": "delay_sec",
+                    "type": "varuint32"
+                }
+            ]
+        },
+        {
+            "name": "wa_public_key",
+            "base": "",
+            "fields": [
+                {
+                    "name": "key",
+                    "type": "dsa_public_key"
+                },
+                {
+                    "name": "user_presence",
+                    "type": "user_presence_t"
+                },
+                {
+                    "name": "rpid",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "wa_signature",
+            "base": "",
+            "fields": [
+                {
+                    "name": "signature",
+                    "type": "bytes"
+                },
+                {
+                    "name": "auth_data",
+                    "type": "bytes"
+                },
+                {
+                    "name": "client_json",
+                    "type": "string"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "addkey",
+            "type": "addkey",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "approve",
+            "type": "approve",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "cancel",
+            "type": "cancel",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "clrproptbl",
+            "type": "clrproptbl",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "exec",
+            "type": "exec",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "hi",
+            "type": "hi",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "propose",
+            "type": "propose",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "removekey",
+            "type": "removekey",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "sethreshold",
+            "type": "sethreshold",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "testwasig",
+            "type": "testwasig",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "approvals",
+            "type": "approvals_info",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "authorities",
+            "type": "authority",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "proposals",
+            "type": "proposal",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "kv_tables": {},
+    "ricardian_clauses": [],
+    "variants": [
+        {
+            "name": "variant_ecc_public_key_rsa_public_key",
+            "types": ["ecc_public_key","rsa_public_key"]
+        }
+    ],
+    "action_results": []
+}
