@@ -58,7 +58,7 @@ struct rsa_public_key_view {
 };
 
 inline bool operator == (const rsa_public_key_view & lkey, const rsa_public_key_view& rkey) {
-    return lkey.exponent == lkey.exponent && lkey.modulus == rkey.modulus;
+    return lkey.exponent == rkey.exponent && lkey.modulus == rkey.modulus;
 }
 
 inline bool operator != (const rsa_public_key_view & lkey, const rsa_public_key_view& rkey) {
