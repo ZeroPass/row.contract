@@ -132,7 +132,7 @@ void row::approve(name account, name proposal_name, name key_name, const wa_sign
         a.requested_approvals.erase( itreq );
     });
 
-    // Set execution delay to time of first approval + transaction delay
+    // Set execution delay to the time of first approval + transaction delay
     // TODO: add check for transaction expiration
     transaction_header tx_header = unpack<transaction_header>( proposal.packed_transaction );//get_trx_header(proposal.packed_transaction.data(), proposal.packed_transaction.size());
     if ( !proposal.earliest_exec_time.has_value() ) {
@@ -183,7 +183,6 @@ void row::exec(name account, name proposal_name)
     auto& app = appdb.get( proposal_name.value, "approvals not found" );
     bool has_auth = is_tx_authorized( proposal.packed_transaction, get_default_permissions(account), auth, app.provided_approvals );
     check( has_auth, "transaction authorization failed" );
-
     check(
         proposal.earliest_exec_time.value_or( proposal.create_time + seconds(tx_header.delay_sec.value) ) <= current_time_point(),
         "too early to execute"
@@ -211,7 +210,7 @@ void row::addkey(name account, authkey key)
 
     check( auth.keys.size() + 1 <= (1 << 16), "too many authority keys" );
     check( key.weight != 0, "key weight can't be zero" );
-    check( key.keyid.empty() == false, "keyid mast nopt be empty" );
+    check( key.keyid.empty() == false, "keyid mast not be empty" );
     for ( const auto& k : auth.keys ) {
         check( k.key_name != key.key_name, "key already exists" );
         check( k.key != key.key, "key already exists" );
@@ -242,7 +241,7 @@ void row::removekey(name account, name key_name)
     check( it != auth.keys.end(), "key doesn't exist" );
     auth.keys.erase( it );
     if ( auth.keys.empty() ) {
-        authdb.remove(); // WARNING: Consider removing this line as account might get locked out.
+        authdb.remove(); // WARNING: Consider removing this line as the account might get locked out.
     }
     else {
         if ( auth.threshold > weights ) {
