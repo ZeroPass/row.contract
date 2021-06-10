@@ -1,5 +1,5 @@
 # row.contract
-edit; THE RIGHT LINK FOR TEAM PRESENTATION: https://youtu.be/GrdU7DX4o7Q
+Short demo https://youtu.be/1TeMFoVr95A
 
 This repository contains ROW EOSIO smart contract which handles WebAuthn multisig transaction executions. 
 The contract manages user authorization permissions (authorities table), transaction proposals, proposed transaction approvals via WebAuthn signature and executes proposed transaction.
