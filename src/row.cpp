@@ -6,12 +6,12 @@
 #include <row/row.hpp>
 #include <row/span.hpp>
 
-transaction_header get_tx_header(const char* ptr, size_t sz) {
-    datastream<const char*> ds { ptr, sz };
-    transaction_header tx_header;
-    ds >> tx_header;
-    return tx_header;
-}
+decltype(row::authority::threshold) row::approvals_info::weights(const row::authority& auth, const std::vector<name>& key_names)
+{
+    decltype(auth.threshold) weights = 0;
+    for ( const auto key_name : key_names ) {
+        auto it = std::find_if( auth.keys.begin(), auth.keys.end(), [key_name](const auto& k) { return k.key_name == key_name; });
+    }
 
 bool is_tx_authorized(const std::vector<char>& packed_tx, const std::vector<permission_level>& permissions)
 {
