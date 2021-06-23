@@ -133,8 +133,8 @@ void row::approve(name account, name proposal_name, name key_name, const wa_sign
     });
 
     // Set execution delay to the time of first approval + transaction delay
-    // TODO: add check for transaction expiration
-    transaction_header tx_header = unpack<transaction_header>( proposal.packed_transaction );//get_trx_header(proposal.packed_transaction.data(), proposal.packed_transaction.size());
+    transaction_header tx_header = unpack<transaction_header>( proposal.packed_transaction );
+    check( tx_header.expiration >= time_point_sec( current_time_point() ), "can't approve expired transaction" );
     if ( !proposal.earliest_exec_time.has_value() ) {
         if ( is_tx_authorized( proposal.packed_transaction, get_default_permissions( account ), auth, app.provided_approvals )) {
             proptable.modify( proposal, account, [&]( auto& p ) {
