@@ -103,6 +103,7 @@ public:
     [[eosio::action]]
     void sethreshold(name account, uint32_t threshold);
 
+#ifdef ROW_TEST_ACTIONS_ENABLED
     [[eosio::action]]
     void clrproptbl(name account)
     {
@@ -125,7 +126,7 @@ public:
     {
         assert_wa_signature(pubkey, signed_hash, sig, "WA signature verification failed");
     }
-
+#endif
     struct [[eosio::table]] proposal {
         name                      proposal_name;
         time_point                create_time;
