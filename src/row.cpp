@@ -123,7 +123,7 @@ void row::approve(name account, name proposal_name, name key_name, const wa_sign
 
     // Verify provided approval signature
     assert_wa_signature(
-        itkey->key,
+        itkey->wa_pubkey,
         sha256(
             proposal.packed_transaction.data(),
             proposal.packed_transaction.size()
@@ -213,7 +213,7 @@ void row::addkey(name account, authkey key)
     );
 
 #ifndef ROW_RSA_ENABLED
-    check( key.key.is_rsa() == false, "RSA keys are not supported" );
+    check( key.wa_pubkey.is_rsa() == false, "RSA keys are not supported" );
 #endif
 
     require_auth( account );
@@ -225,7 +225,7 @@ void row::addkey(name account, authkey key)
     check( key.keyid.empty() == false, "keyid mast not be empty" );
     for ( const auto& k : auth.keys ) {
         check( k.key_name != key.key_name, "key already exists" );
-        check( k.key != key.key, "key already exists" );
+        check( k.wa_pubkey != key.wa_pubkey, "key already exists" );
     }
 
     auth.keys.push_back( std::move(key) );

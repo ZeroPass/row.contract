@@ -19,7 +19,7 @@ class [[eosio::contract]] row : public contract
 public:
     struct authkey {
         name                    key_name;
-        wa_public_key           key;
+        wa_public_key           wa_pubkey;
         std::optional<uint32_t> wait_sec;
         uint16_t                weight;
         bytes                   keyid;    // webauthn credential ID

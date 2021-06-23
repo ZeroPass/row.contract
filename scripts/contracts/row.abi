@@ -101,7 +101,7 @@
                     "type": "name"
                 },
                 {
-                    "name": "key",
+                    "name": "wa_pubkey",
                     "type": "wa_public_key"
                 },
                 {
@@ -345,7 +345,7 @@
             "base": "",
             "fields": [
                 {
-                    "name": "key",
+                    "name": "pubkey",
                     "type": "dsa_public_key"
                 },
                 {

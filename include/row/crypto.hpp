@@ -75,16 +75,16 @@ struct wa_public_key {
     /**
      * The DSA public key
      */
-    dsa_public_key key;
+    dsa_public_key pubkey;
 
     bool is_ecc() const
     {
-        return std::holds_alternative<ecc_public_key>( key );
+        return std::holds_alternative<ecc_public_key>( pubkey );
     }
 
     bool is_rsa() const
     {
-        return std::holds_alternative<rsa_public_key>( key );
+        return std::holds_alternative<rsa_public_key>( pubkey );
     }
 
     eosio::webauthn_public_key::user_presence_t user_presence;
@@ -92,11 +92,11 @@ struct wa_public_key {
     std::string rpid;
 
     friend bool operator == ( const wa_public_key& a, const wa_public_key& b ) {
-        return std::tie( a.key, a.user_presence, a.rpid ) == std::tie( b.key, b.user_presence, b.rpid );
+        return std::tie( a.pubkey, a.user_presence, a.rpid ) == std::tie( b.pubkey, b.user_presence, b.rpid );
     }
 
     friend bool operator != ( const wa_public_key& a, const wa_public_key& b ) {
-        return std::tie( a.key, a.user_presence, a.rpid ) != std::tie( b.key, b.user_presence, b.rpid );
+        return std::tie( a.pubkey, a.user_presence, a.rpid ) != std::tie( b.pubkey, b.user_presence, b.rpid );
     }
 };
 
@@ -248,7 +248,7 @@ inline bool verify_wa_signature(const wa_public_key& wa_pubkey, const eosio::che
             signature.client_json
         };
 
-        const ecc_public_key& raw_ecc_pubkey = std::get<ecc_public_key>( wa_pubkey.key );
+        const ecc_public_key& raw_ecc_pubkey = std::get<ecc_public_key>( wa_pubkey.pubkey );
         eosio::check( raw_ecc_pubkey.size() == sizeof( eosio::ecc_public_key ), "invalid public key size" );
 
         eosio::ecc_public_key ecc_pubkey;
