@@ -1,7 +1,7 @@
 #!/bin/bash
-CLEOS=/mnt/disk/row/cleos.sh
+CLEOS=cleos.sh
 
-contract_dir='/mnt/disk/row/contracts'
+contract_dir='contracts'
 contract_name='eosio.token'
 
 function transfer_to() {

@@ -1,5 +1,5 @@
 #!/bin/bash
-CLEOS=/mnt/disk/row/cleos.sh
+CLEOS=cleos.sh
 
 contract_account='irowyourboat'
 contract_key='EOS66kac59Fm7tUBcm2yYZ4DExYLgPjoSptHYQZdJHCKyH8pa2dsw'
