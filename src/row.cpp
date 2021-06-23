@@ -109,7 +109,7 @@ void row::approve(name account, name proposal_name, name key_name, const wa_sign
     auto& app = appdb.get( proposal_name.value, "approvals not found" );
 
     auto itreq = std::find( app.requested_approvals.begin(), app.requested_approvals.end(), key_name );
-    check( itreq != app.requested_approvals.end(), "approval is not on the list of requested approvals" );
+    check( itreq != app.requested_approvals.end(), "approval is not in the list of requested approvals" );
 
     auto itapp = std::find( app.provided_approvals.begin(), app.provided_approvals.end(), key_name );
     check( itapp == app.provided_approvals.end(), "already in the list of approvals" );
