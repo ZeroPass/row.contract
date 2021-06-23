@@ -9,8 +9,10 @@
 #include <eosio/check.hpp>
 #include <eosio/crypto.hpp>
 
-#include "base64.hpp"
 #include "types.hpp"
+
+#ifdef ROW_RSA_ENABLED
+#include "base64.hpp"
 
 namespace details {
     extern "C" {
@@ -64,9 +66,14 @@ inline bool operator == (const rsa_public_key_view & lkey, const rsa_public_key_
 inline bool operator != (const rsa_public_key_view & lkey, const rsa_public_key_view& rkey) {
     return !( lkey == rkey );
 }
+#endif //ROW_RSA_ENABLED
 
 using ecc_public_key = bytes;
-using dsa_public_key = std::variant<ecc_public_key, rsa_public_key>;
+using dsa_public_key = std::variant<ecc_public_key
+#ifdef ROW_RSA_ENABLED
+    , rsa_public_key
+#endif
+>;
 
 struct wa_public_key {
     /**
@@ -78,12 +85,12 @@ struct wa_public_key {
     {
         return std::holds_alternative<ecc_public_key>( key );
     }
-
+#ifdef ROW_RSA_ENABLED
     bool is_rsa() const
     {
         return std::holds_alternative<rsa_public_key>( key );
     }
-
+#endif
     eosio::webauthn_public_key::user_presence_t user_presence;
 
     std::string rpid;
@@ -116,6 +123,7 @@ struct wa_signature {
     std::string client_json;
 };
 
+#ifdef ROW_RSA_ENABLED
 static int powm(const char* base, uint32_t base_len,
                 const char* exponent,  uint32_t exponent_len,
                 const char* modulus,   uint32_t modulus_len,
@@ -228,6 +236,8 @@ bool verify_rsa_sha256(const rsa_public_key_view& rsa_pub_key, const bytes_view&
         });
     });
 }
+#endif //ROW_RSA_ENABLED
+
 
 // Verifies digital signature generated
 inline bool verify_wa_signature(const wa_public_key& wa_pubkey, const eosio::checksum256& digest, const wa_signature& signature)
@@ -242,7 +252,7 @@ inline bool verify_wa_signature(const wa_public_key& wa_pubkey, const eosio::che
             signature.client_json
         };
 
-        const ecc_public_key&  raw_ecc_pubkey = std::get<ecc_public_key>(wa_pubkey.key);
+        const ecc_public_key& raw_ecc_pubkey = std::get<ecc_public_key>( wa_pubkey.key );
         eosio::check( raw_ecc_pubkey.size() == sizeof( eosio::ecc_public_key ), "invalid public key size" );
 
         eosio::ecc_public_key ecc_pubkey;
@@ -254,10 +264,9 @@ inline bool verify_wa_signature(const wa_public_key& wa_pubkey, const eosio::che
         };
 
         auto pubkey = eosio::recover_key( digest, wa_sig );
-        // TODO: require user presence.
-        // eosio::check((pubkey.user_presence & user_presence_t::USER_PRESENCE_PRESENT) != 0, "user must be present");
         return pubkey == eosio::public_key( std::move( wa_ecc_pubkey ));
     }
+#ifdef ROW_RSA_ENABLED
     else {
         constexpr static size_t min_auth_data_size = 37;
         static_assert( min_auth_data_size >= sizeof( eosio::checksum256 ), "auth_data min size not enough to store a sha256");
@@ -312,6 +321,7 @@ inline bool verify_wa_signature(const wa_public_key& wa_pubkey, const eosio::che
         sdit = std::copy( client_data_hash.begin(), client_data_hash.end(), sdit );
         return verify_rsa_sha256( std::get<rsa_public_key>(wa_pubkey.key), signed_data, signature.signature );
     }
+#endif //ROW_RSA_ENABLED
     return false;
 }
 
