@@ -11,9 +11,24 @@ decltype(row::authority::threshold) row::approvals_info::weights(const row::auth
     decltype(auth.threshold) weights = 0;
     for ( const auto key_name : key_names ) {
         auto it = std::find_if( auth.keys.begin(), auth.keys.end(), [key_name](const auto& k) { return k.key_name == key_name; });
+        check( it != auth.keys.end(), "invalid auth key name in the list" );
+        weights += it->weight;
     }
+    return weights;
+}
 
-bool is_tx_authorized(const std::vector<char>& packed_tx, const std::vector<permission_level>& permissions)
+bool row::approvals_info::cross_threshold(const row::authority& auth) const
+{
+    return auth.weights_cross_threshold( weights( auth, provided_approvals ));
+}
+
+bool row::approvals_info::requested_cross_threshold(const row::authority& auth) const
+{
+    return auth.weights_cross_threshold( weights( auth, requested_approvals ));
+}
+
+inline bool is_base_tx_authorized(const std::vector<char>& packed_tx,
+                                  const std::vector<permission_level>& permissions)
 {
     auto packed_permissions = pack( permissions );
     return check_transaction_authorization(
@@ -23,31 +38,19 @@ bool is_tx_authorized(const std::vector<char>& packed_tx, const std::vector<perm
     );
 }
 
-decltype(row::authority::threshold) get_approval_weights(const row::authority& auth, const std::vector<name>& approvals)
+inline bool is_tx_authorized(const std::vector<char>& packed_tx,
+                             const std::vector<permission_level>& permissions,
+                             const row::authority& auth, const row::approvals_info& approvals)
 {
-    decltype(auth.threshold) weights = 0;
-    for ( const auto key_name : approvals ) {
-        auto it = std::find_if( auth.keys.begin(), auth.keys.end(), [key_name](const auto& k) { return k.key_name == key_name; });
-        check( it != auth.keys.end(), "invalid auth key name in the list" );
-        weights += it->weight;
-    }
-    return weights;
+    return is_base_tx_authorized( packed_tx, permissions )
+        && approvals.cross_threshold( auth );
 }
 
-bool is_tx_authorized(const std::vector<char>& packed_tx,
-                      const std::vector<permission_level>& permissions,
-                      const row::authority& auth, const std::vector<name>& approvals)
-{
-    if ( is_tx_authorized( packed_tx, permissions )) {
-        return get_approval_weights( auth, approvals ) >= auth.threshold;
-    }
-    return false;
-}
-
-std::vector<permission_level> get_default_permissions(name account) {
+inline std::vector<permission_level> get_default_permissions(name account) {
     return std::vector{ permission_level{ account, "active"_n }};
 }
 
+[[eosio::action]]
 void row::propose(name account, name proposal_name, std::vector<name> requested_approvals, ignore<transaction> tx)
 {
     require_auth( account );
@@ -70,12 +73,12 @@ void row::propose(name account, name proposal_name, std::vector<name> requested_
     check( ctx_free_actions.empty(), "not allowed to propose transaction with context-free actions" );
 
     proposals proptable( get_self(), account.value );
-    check( proptable.find( proposal_name.value ) == proptable.end(), "proposal with the same name exists" );
+    check( proptable.find( proposal_name.value ) == proptable.end(), "proposal with the same name already exists" );
 
     std::vector<char> raw_tx;
     raw_tx.resize( tx_size );
     memcpy( (char*)raw_tx.data(), tx_pos, tx_size );
-    check( is_tx_authorized( raw_tx, get_default_permissions(account) ), "transaction authorization failed" );
+    check( is_base_tx_authorized( raw_tx, get_default_permissions(account) ), "transaction authorization failed" );
 
     proptable.emplace( account, [&]( auto& p ) {
         p.proposal_name      = proposal_name;
@@ -85,16 +88,15 @@ void row::propose(name account, name proposal_name, std::vector<name> requested_
     });
 
     auto auth = authdb.get();
-    const auto weights = get_approval_weights( auth, requested_approvals );
-    check( weights >= auth.threshold, "requested approvals don't overweight threshold" );
-
     approvals appdb( get_self(), account.value );
     appdb.emplace( account, [&]( auto& a ) {
         a.proposal_name       = proposal_name;
         a.requested_approvals = std::move(requested_approvals);
+        check( a.requested_cross_threshold( auth ), "requested approvals don't overweight threshold" );
     });
 }
 
+[[eosio::action]]
 void row::approve(name account, name proposal_name, name key_name, const wa_signature& signature)
 {
     require_auth( account );
@@ -122,7 +124,10 @@ void row::approve(name account, name proposal_name, name key_name, const wa_sign
     // Verify provided approval signature
     assert_wa_signature(
         itkey->key,
-        sha256( proposal.packed_transaction.data(), proposal.packed_transaction.size() ),
+        sha256(
+            proposal.packed_transaction.data(),
+            proposal.packed_transaction.size()
+        ),
         signature,
         "irelavant signature"
     );
@@ -136,7 +141,7 @@ void row::approve(name account, name proposal_name, name key_name, const wa_sign
     transaction_header tx_header = unpack<transaction_header>( proposal.packed_transaction );
     check( tx_header.expiration >= time_point_sec( current_time_point() ), "can't approve expired transaction" );
     if ( !proposal.earliest_exec_time.has_value() ) {
-        if ( is_tx_authorized( proposal.packed_transaction, get_default_permissions( account ), auth, app.provided_approvals )) {
+        if ( is_tx_authorized( proposal.packed_transaction, get_default_permissions( account ), auth, app )) {
             proptable.modify( proposal, account, [&]( auto& p ) {
                 p.earliest_exec_time = std::optional<time_point>{ current_time_point() + seconds( tx_header.delay_sec.value )};
             });
@@ -144,6 +149,7 @@ void row::approve(name account, name proposal_name, name key_name, const wa_sign
     }
 }
 
+[[eosio::action]]
 void row::cancel(name account, name proposal_name)
 {
     require_auth( account );
@@ -157,6 +163,7 @@ void row::cancel(name account, name proposal_name)
     appdb.erase( app );
 }
 
+[[eosio::action]]
 void row::exec(name account, name proposal_name)
 {
     require_auth( account );
@@ -181,7 +188,7 @@ void row::exec(name account, name proposal_name)
 
     approvals appdb( get_self(), account.value );
     auto& app = appdb.get( proposal_name.value, "approvals not found" );
-    bool has_auth = is_tx_authorized( proposal.packed_transaction, get_default_permissions(account), auth, app.provided_approvals );
+    bool has_auth = is_tx_authorized( proposal.packed_transaction, get_default_permissions(account), auth, app );
     check( has_auth, "transaction authorization failed" );
     check(
         proposal.earliest_exec_time.value_or( proposal.create_time + seconds(tx_header.delay_sec.value) ) <= current_time_point(),
@@ -197,6 +204,7 @@ void row::exec(name account, name proposal_name)
     appdb.erase( app );
 }
 
+[[eosio::action]]
 void row::addkey(name account, authkey key)
 {
     static_assert( std::is_same_v<decltype(std::declval<authority>().threshold), uint32_t> &&
@@ -220,6 +228,7 @@ void row::addkey(name account, authkey key)
     authdb.set( auth, account );
 }
 
+[[eosio::action]]
 void row::removekey(name account, name key_name)
 {
     require_auth( account );
@@ -247,6 +256,7 @@ void row::removekey(name account, name key_name)
     authdb.set( auth, account );
 }
 
+[[eosio::action]]
 void row::sethreshold(name account, uint32_t threshold)
 {
     require_auth(account);
