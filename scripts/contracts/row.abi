@@ -147,16 +147,6 @@
             ]
         },
         {
-            "name": "clrproptbl",
-            "base": "",
-            "fields": [
-                {
-                    "name": "account",
-                    "type": "name"
-                }
-            ]
-        },
-        {
             "name": "exec",
             "base": "",
             "fields": [
@@ -181,16 +171,6 @@
                 {
                     "name": "data",
                     "type": "bytes"
-                }
-            ]
-        },
-        {
-            "name": "hi",
-            "base": "",
-            "fields": [
-                {
-                    "name": "nm",
-                    "type": "name"
                 }
             ]
         },
@@ -291,24 +271,6 @@
                 {
                     "name": "threshold",
                     "type": "uint32"
-                }
-            ]
-        },
-        {
-            "name": "testwasig",
-            "base": "",
-            "fields": [
-                {
-                    "name": "pubkey",
-                    "type": "wa_public_key"
-                },
-                {
-                    "name": "signed_hash",
-                    "type": "checksum256"
-                },
-                {
-                    "name": "sig",
-                    "type": "wa_signature"
                 }
             ]
         },
@@ -414,18 +376,8 @@
             "ricardian_contract": ""
         },
         {
-            "name": "clrproptbl",
-            "type": "clrproptbl",
-            "ricardian_contract": ""
-        },
-        {
             "name": "exec",
             "type": "exec",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "hi",
-            "type": "hi",
             "ricardian_contract": ""
         },
         {
@@ -441,11 +393,6 @@
         {
             "name": "sethreshold",
             "type": "sethreshold",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "testwasig",
-            "type": "testwasig",
             "ricardian_contract": ""
         }
     ],
