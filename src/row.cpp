@@ -226,6 +226,7 @@ void row::removekey(name account, name key_name)
     authorities authdb( _self, account.value );
     check( authdb.exists(), "account permission authority doesn't exist" );
     auto auth = authdb.get();
+    check( auth.keys.size() > 1, "account must have at least 1 authority key" );
 
     auto it = auth.keys.end();
     uint32_t weights = 0;
@@ -240,15 +241,10 @@ void row::removekey(name account, name key_name)
 
     check( it != auth.keys.end(), "key doesn't exist" );
     auth.keys.erase( it );
-    if ( auth.keys.empty() ) {
-        authdb.remove(); // WARNING: Consider removing this line as the account might get locked out.
+    if ( auth.threshold > weights ) {
+        auth.threshold = weights;
     }
-    else {
-        if ( auth.threshold > weights ) {
-            auth.threshold = weights;
-        }
-        authdb.set( auth, account );
-    }
+    authdb.set( auth, account );
 }
 
 void row::sethreshold(name account, uint32_t threshold)
