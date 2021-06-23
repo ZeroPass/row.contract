@@ -323,6 +323,24 @@
             ]
         },
         {
+            "name": "updatekey",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "key_name",
+                    "type": "name"
+                },
+                {
+                    "name": "key",
+                    "type": "authkey"
+                }
+            ]
+        },
+        {
             "name": "wa_public_key",
             "base": "",
             "fields": [
@@ -393,6 +411,11 @@
         {
             "name": "sethreshold",
             "type": "sethreshold",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "updatekey",
+            "type": "updatekey",
             "ricardian_contract": ""
         }
     ],

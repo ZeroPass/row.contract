@@ -78,6 +78,15 @@ public:
     void addkey(name account, authkey key);
 
     /**
+     * Action updates authority key in the account's authority table.
+     * @param account  - the name of the account to update key for
+     * @param key_name - the name of key to update
+     * @param authkey  - authority key
+    */
+    [[eosio::action]]
+    void updatekey(name account, name key_name, authkey key);
+
+    /**
      * Action removes key from account's authority.
      * @note the last key can't be removed due to requirement that account has at least 1 authority key.
      * @note if after removing key the threshold is greater than the sum of weights of remaining keys,

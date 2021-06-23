@@ -233,6 +233,31 @@ void row::addkey(name account, authkey key)
 }
 
 [[eosio::action]]
+void row::updatekey(name account, name key_name, authkey key)
+{
+    require_auth( account );
+    check( key.weight != 0, "key weight can't be zero" );
+
+    authorities authdb( _self, account.value );
+    check( authdb.exists(), "account permission authority doesn't exist" );
+
+    auto auth = authdb.get();
+    auto it = auth.keys.end();
+    uint32_t weights = 0;
+    for ( auto eit = auth.keys.begin(); eit != auth.keys.end(); ++eit ) {
+        if ( eit->key_name == key_name ) {
+            *eit = std::move(key);
+            it = eit;
+        }
+        weights += eit->weight;
+    }
+
+    check( it != auth.keys.end(), "key doesn't exist" );
+    check( auth.weights_cross_threshold( weights ), "key doesn't overweight threshold" );
+    authdb.set( auth, account );
+}
+
+[[eosio::action]]
 void row::removekey(name account, name key_name)
 {
     require_auth( account );
