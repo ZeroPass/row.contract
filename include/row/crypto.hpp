@@ -29,6 +29,7 @@ namespace details {
     constexpr size_t pkcs1_v1_5_t_sha256_size = sha256_digest_info_prefix.size() + sizeof(eosio::checksum256);
     static_assert( pkcs1_v1_5_t_sha256_size == 51 );
 }
+#endif //ROW_RSA_ENABLED
 
 struct rsa_public_key {
     bytes modulus;
@@ -66,14 +67,9 @@ inline bool operator == (const rsa_public_key_view & lkey, const rsa_public_key_
 inline bool operator != (const rsa_public_key_view & lkey, const rsa_public_key_view& rkey) {
     return !( lkey == rkey );
 }
-#endif //ROW_RSA_ENABLED
 
 using ecc_public_key = bytes;
-using dsa_public_key = std::variant<ecc_public_key
-#ifdef ROW_RSA_ENABLED
-    , rsa_public_key
-#endif
->;
+using dsa_public_key = std::variant<ecc_public_key, rsa_public_key>;
 
 struct wa_public_key {
     /**
@@ -85,12 +81,12 @@ struct wa_public_key {
     {
         return std::holds_alternative<ecc_public_key>( key );
     }
-#ifdef ROW_RSA_ENABLED
+
     bool is_rsa() const
     {
         return std::holds_alternative<rsa_public_key>( key );
     }
-#endif
+
     eosio::webauthn_public_key::user_presence_t user_presence;
 
     std::string rpid;

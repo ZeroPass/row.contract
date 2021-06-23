@@ -212,6 +212,10 @@ void row::addkey(name account, authkey key)
         std::is_same_v<decltype(std::declval<authkey>().weight), uint16_t>
     );
 
+#ifndef ROW_RSA_ENABLED
+    check( key.key.is_rsa() == false, "RSA keys are not supported" );
+#endif
+
     require_auth( account );
     authorities authdb( _self, account.value );
     auto auth = authdb.get_or_default();
