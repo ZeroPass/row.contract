@@ -217,14 +217,17 @@ void row::addkey(name account, authkey key)
 #endif
 
     require_auth( account );
+
     authorities authdb( _self, account.value );
     auto auth = authdb.get_or_default();
 
-    check( auth.keys.size() + 1 <= (1 << 16), "too many authority keys" );
-    check( key.weight != 0, "key weight can't be zero" );
-    check( key.keyid.empty() == false, "keyid mast not be empty" );
+    check( auth.keys.size() + 1 <= (1 << 16), "too many authority keys"  );
+    check( bool( key.key_name ) == true     , "invalid key name"         );
+    check( key.keyid.empty()    == false    , "keyid must not be empty"  );
+    check( key.weight           != 0        , "key weight can't be zero" );
+
     for ( const auto& k : auth.keys ) {
-        check( k.key_name != key.key_name, "key already exists" );
+        check( k.key_name  != key.key_name , "key already exists" );
         check( k.wa_pubkey != key.wa_pubkey, "key already exists" );
     }
 
@@ -276,6 +279,7 @@ void row::removekey(name account, name key_name)
     require_auth( account );
     authorities authdb( _self, account.value );
     check( authdb.exists(), "account permission authority doesn't exist" );
+
     auto auth = authdb.get();
     check( auth.keys.size() > 1, "account must have at least 1 authority key" );
 
