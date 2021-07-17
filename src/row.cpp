@@ -235,11 +235,17 @@ void row::addkey(name account, authkey key)
 [[eosio::action]]
 void row::updatekey(name account, name key_name, authkey key)
 {
+#ifndef ROW_RSA_ENABLED
+    check( key.wa_pubkey.is_rsa() == false, "RSA keys are not supported" );
+#endif
+
     require_auth( account );
-    check( key.weight != 0, "key weight can't be zero" );
 
     authorities authdb( _self, account.value );
-    check( authdb.exists(), "account permission authority doesn't exist" );
+    check( authdb.exists()      == true , "account permission authority doesn't exist" );
+    check( bool( key.key_name ) == true , "invalid key name"                           );
+    check( key.keyid.empty()    == false, "keyid must not be empty"                    );
+    check( key.weight           != 0    , "key weight can't be zero"                   );
 
     auto auth = authdb.get();
     auto it = auth.keys.end();
@@ -248,6 +254,13 @@ void row::updatekey(name account, name key_name, authkey key)
         if ( eit->key_name == key_name ) {
             *eit = std::move(key);
             it = eit;
+        }
+        else {
+            // Verify the same key doesn't already exists
+            const auto& name = it != auth.keys.end() ? it->key_name : key.key_name;
+            const auto& wa_pubkey = it != auth.keys.end() ? it->wa_pubkey : key.wa_pubkey;
+            check( eit->key_name  != name     , "key already exists" );
+            check( eit->wa_pubkey != wa_pubkey, "key already exists" );
         }
         weights += eit->weight;
     }
