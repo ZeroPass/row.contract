@@ -120,6 +120,8 @@ void row::approve(name account, name proposal_name, name key_name, const wa_sign
     auto itkey = std::find_if( auth.keys.begin(), auth.keys.end(), [key_name](const auto& k) { return k.key_name == key_name; });
     check( itkey != auth.keys.end(), "missing authority key for provided approval" );
     check( (proposal.create_time + seconds(itkey->wait_sec.value_or(0U))) <= current_time_point(),
+        "key doesn’t satisfy required wait time"
+    );
 
     // Verify provided approval signature
     assert_wa_signature(

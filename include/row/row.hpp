@@ -101,7 +101,7 @@ public:
      * Action sets threshold for the account's authority.
      * @param account   - the name of account
      * @param threshold - the new account threshold.
-     *                    Treshold can be zero or greater than sum of weights of all keys.
+     *                    Threshold can be zero or greater than sum of weights of all keys.
      */
     [[eosio::action]]
     void sethreshold(name account, uint32_t threshold);
@@ -110,7 +110,7 @@ public:
     struct [[eosio::table("authorities")]] authority {
         uint32_t             threshold = 1;
         std::vector<authkey> keys;
-        bool weights_cross_threshold(uint32_t weights) const { // does the weights reach threashold
+        bool weights_cross_threshold(uint32_t weights) const { // does the weights reach threshold
             return weights >= threshold;
         }
     };
