@@ -51,7 +51,7 @@ inline std::vector<permission_level> get_default_permissions(name account) {
 }
 
 [[eosio::action]]
-void row::propose(name account, name proposal_name, std::vector<name> requested_approvals, ignore<transaction> tx)
+void row::propose(name account, name proposal_name, std::vector<name> requested_approvals, ignore<transaction> trx)
 {
     require_auth( account );
     check( account != _self, "I can't make proposal by myself" );
@@ -66,7 +66,9 @@ void row::propose(name account, name proposal_name, std::vector<name> requested_
 
     transaction_header tx_header;
     ds >> tx_header;
-    check( tx_header.expiration >= time_point_sec( current_time_point() ), "transaction has expired" );
+    check( tx_header.expiration >= time_point_sec( current_time_point() ), "proposed transaction has expired" );
+    check( tx_header.ref_block_num    == tapos_block_num()   , "proposed transaction has invalid ref. block number" );
+    check( tx_header.ref_block_prefix == tapos_block_prefix(), "proposed transaction has invalid ref. block prefix" );
 
     std::vector<action> ctx_free_actions;
     ds >> ctx_free_actions;
@@ -80,14 +82,18 @@ void row::propose(name account, name proposal_name, std::vector<name> requested_
     memcpy( (char*)raw_tx.data(), tx_pos, tx_size );
     check( is_base_tx_authorized( raw_tx, get_default_permissions(account) ), "transaction authorization failed" );
 
+    auto auth = authdb.get();
     proptable.emplace( account, [&]( auto& p ) {
         p.proposal_name      = proposal_name;
         p.create_time        = current_time_point();
+        p.trx_seq            = ++auth.trx_seq;
         p.packed_transaction = raw_tx;
         p.earliest_exec_time = std::optional<time_point>{};
     });
 
-    auto auth = authdb.get();
+    // Store changed trx_seq
+    authdb.set(auth, same_payer);
+
     approvals appdb( get_self(), account.value );
     appdb.emplace( account, [&]( auto& a ) {
         a.proposal_name       = proposal_name;
@@ -123,6 +129,18 @@ void row::approve(name account, name proposal_name, name key_name, const wa_sign
         "key doesn’t satisfy required wait time"
     );
 
+    // Concatenate raw_trx | proposal.trx_seq
+    const auto trx_end = proposal.packed_transaction.size();
+    const_cast<std::vector<char>&>( proposal.packed_transaction )
+        .resize( trx_end + sizeof( uint64_t ));
+
+    eosio::datastream<const char*> ds(
+        proposal.packed_transaction.data(),
+        proposal.packed_transaction.size()
+    );
+    ds.seekp( trx_end );
+    ds << proposal.trx_seq;
+
     // Verify provided approval signature
     assert_wa_signature(
         itkey->wa_pubkey,
@@ -134,7 +152,8 @@ void row::approve(name account, name proposal_name, name key_name, const wa_sign
         "irelavant signature"
     );
 
-    appdb.modify( app, account, [&]( auto& a ) {
+    // Update approval table for the account
+    appdb.modify( app, same_payer, [&]( auto& a ) {
         a.provided_approvals.push_back( key_name );
         a.requested_approvals.erase( itreq );
     });

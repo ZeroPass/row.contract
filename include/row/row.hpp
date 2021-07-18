@@ -37,7 +37,7 @@ public:
      * @param tx                  - proposed transaction
     */
     [[eosio::action]]
-    void propose(name account, name proposal_name, std::vector<name> requested_approvals, ignore<transaction> tx);
+    void propose(name account, name proposal_name, std::vector<name> requested_approvals, ignore<transaction> trx);
 
     /**
      * Action approve proposed transaction.
@@ -108,6 +108,7 @@ public:
 
    // Tables
     struct [[eosio::table("authorities")]] authority {
+        uint64_t             trx_seq   = 0; // sequence number of the last proposed transaction.
         uint32_t             threshold = 1;
         std::vector<authkey> keys;
         bool weights_cross_threshold(uint32_t weights) const { // does the weights reach threshold
@@ -119,6 +120,7 @@ public:
     struct [[eosio::table]] proposal {
         name                      proposal_name;
         time_point                create_time;
+        uint64_t                  trx_seq;    // transacion sequencial number i.e. authority.trx_seq += 1 at proposal
         std::vector<char>         packed_transaction;
         std::optional<time_point> earliest_exec_time;
         uint64_t primary_key() const { return proposal_name.value; }
