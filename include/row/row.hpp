@@ -141,6 +141,17 @@ public:
 
 #ifdef ROW_TEST_ACTIONS_ENABLED
     [[eosio::action]]
+    void delaccnt(name account)
+    {
+        require_auth(account);
+        authorities authdb( _self, account.value );
+        if (authdb.exists()) {
+            authdb.remove();
+        }
+        clrproptbl(account);
+    }
+
+    [[eosio::action]]
     void clrproptbl(name account)
     {
         require_auth(account);
