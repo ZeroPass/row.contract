@@ -123,6 +123,10 @@
             "base": "",
             "fields": [
                 {
+                    "name": "trx_seq",
+                    "type": "uint64"
+                },
+                {
                     "name": "threshold",
                     "type": "uint32"
                 },
@@ -201,6 +205,10 @@
                     "type": "time_point"
                 },
                 {
+                    "name": "trx_seq",
+                    "type": "uint64"
+                },
+                {
                     "name": "packed_transaction",
                     "type": "bytes"
                 },
@@ -227,7 +235,7 @@
                     "type": "name[]"
                 },
                 {
-                    "name": "tx",
+                    "name": "trx",
                     "type": "transaction"
                 }
             ]
