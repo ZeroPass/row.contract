@@ -27,3 +27,6 @@ In folder [scripts](https://github.com/ZeroPass/row.contract/tree/master/scripts
 then execute script `bootstrap.sh`.
 
 ** Note: Due to intensive computation requirements by RSA modular exponentiation and constrains of EOS WASM VM the nodeos has to be started in smart contract optimized compilation mode (OC).
+
+# Testnet
+Contract without RSA support is uploaded on Jungle 3 testnet under the [irowyourboat](https://jungle3.bloks.io/account/irowyourboat) account.
