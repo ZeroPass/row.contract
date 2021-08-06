@@ -57,7 +57,7 @@ inline std::vector<permission_level> get_default_permissions(name account) {
 void row::propose(name account, name proposal_name, std::vector<name> requested_approvals, ignore<transaction> trx)
 {
     require_auth( account );
-    check( account != _self, "I can't make proposal by myself" );
+    check( account != _self, "I can't make proposal for myself" );
     check( bool(proposal_name), "invalid proposal name" );
 
     authorities authdb( _self, account.value );
@@ -87,6 +87,8 @@ void row::propose(name account, name proposal_name, std::vector<name> requested_
 
     auto auth = authdb.get();
     proptable.emplace( account, [&]( auto& p ) {
+        static_assert( std::is_same_v<decltype(auth.trx_seq), uint32_t> );
+        static_assert( std::is_same_v<decltype(p.trx_seq), uint32_t> );
         p.proposal_name      = proposal_name;
         p.create_time        = current_time_point();
         p.trx_seq            = ++auth.trx_seq;
@@ -95,7 +97,7 @@ void row::propose(name account, name proposal_name, std::vector<name> requested_
     });
 
     // Store changed trx_seq
-    authdb.set(auth, same_payer);
+    authdb.set( auth, same_payer );
 
     approvals appdb( get_self(), account.value );
     appdb.emplace( account, [&]( auto& a ) {
@@ -133,9 +135,10 @@ void row::approve(name account, name proposal_name, name key_name, const wa_sign
     );
 
     // Concatenate raw_trx | proposal.trx_seq
+    static_assert( std::is_same_v<decltype(proposal.trx_seq), uint32_t> );
     const auto trx_end = proposal.packed_transaction.size();
     const_cast<std::vector<char>&>( proposal.packed_transaction )
-        .resize( trx_end + sizeof( uint64_t ));
+        .resize( trx_end + sizeof( decltype(proposal.trx_seq) ));
 
     eosio::datastream<const char*> ds(
         proposal.packed_transaction.data(),
