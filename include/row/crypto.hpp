@@ -315,7 +315,7 @@ inline bool verify_wa_signature(const wa_public_key& wa_pubkey, const eosio::che
         signed_data.resize( signature.auth_data.size() + client_data_hash.size() );
         auto sdit = std::copy( signature.auth_data.begin(), signature.auth_data.end(), signed_data.begin() );
         sdit = std::copy( client_data_hash.begin(), client_data_hash.end(), sdit );
-        return verify_rsa_sha256( std::get<rsa_public_key>(wa_pubkey.key), signed_data, signature.signature );
+        return verify_rsa_sha256( std::get<rsa_public_key>(wa_pubkey.pubkey), signed_data, signature.signature );
     }
 #endif //ROW_RSA_ENABLED
     return false;
