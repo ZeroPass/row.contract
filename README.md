@@ -30,3 +30,6 @@ then execute script `bootstrap.sh`.
 
 # Testnet
 Contract without RSA support is uploaded on Jungle 3 testnet under the [irowyourboat](https://jungle3.bloks.io/account/irowyourboat) account.
+
+# Copyright
+ © 2021 ZeroPass <zeropass@pm.me>
