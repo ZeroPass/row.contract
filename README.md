@@ -11,7 +11,7 @@ The RSA PKCS v1.5 algorithm is [written in the contract](https://github.com/Zero
 
 # Requirements
 Installed EOSIO nodeos v2.0
-Installed eosio.cdt 1.7
+Installed eosio.cdt 1.8
 
 # How to build
 1. `git clone https://github.com/ZeroPass/row.contract.git row.contract`
@@ -26,10 +26,8 @@ Start `nodeos` with `--eos-vm-oc-enable` flag (due to RSA **)
 In folder [scripts](https://github.com/ZeroPass/row.contract/tree/master/scripts) modify any script to point to valid nodeos and change account keys as needed,
 then execute script `bootstrap.sh`.
 
-** Note: Due to intensive computation requirements by RSA modular exponentiation and constrains of EOS WASM VM the nodeos has to be started in smart contract optimized compilation mode (OC).
-
 # Testnet
-Contract without RSA support is uploaded on Jungle 3 testnet under the [irowyourboat](https://jungle3.bloks.io/account/irowyourboat) account.
+Contract with RSA support enabled is uploaded to Jungle 3 testnet under the [irowyourboat](https://jungle3.bloks.io/account/irowyourboat) account.
 
 # Copyright
  © 2021 ZeroPass <zeropass@pm.me>
