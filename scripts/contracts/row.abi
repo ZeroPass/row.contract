@@ -124,7 +124,7 @@
             "fields": [
                 {
                     "name": "trx_seq",
-                    "type": "uint64"
+                    "type": "uint32"
                 },
                 {
                     "name": "threshold",
@@ -146,6 +146,26 @@
                 },
                 {
                     "name": "proposal_name",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "clrproptbl",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "delaccnt",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
                     "type": "name"
                 }
             ]
@@ -206,7 +226,7 @@
                 },
                 {
                     "name": "trx_seq",
-                    "type": "uint64"
+                    "type": "uint32"
                 },
                 {
                     "name": "packed_transaction",
@@ -279,6 +299,24 @@
                 {
                     "name": "threshold",
                     "type": "uint32"
+                }
+            ]
+        },
+        {
+            "name": "testwasig",
+            "base": "",
+            "fields": [
+                {
+                    "name": "pubkey",
+                    "type": "wa_public_key"
+                },
+                {
+                    "name": "signed_hash",
+                    "type": "checksum256"
+                },
+                {
+                    "name": "sig",
+                    "type": "wa_signature"
                 }
             ]
         },
@@ -402,6 +440,16 @@
             "ricardian_contract": ""
         },
         {
+            "name": "clrproptbl",
+            "type": "clrproptbl",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "delaccnt",
+            "type": "delaccnt",
+            "ricardian_contract": ""
+        },
+        {
             "name": "exec",
             "type": "exec",
             "ricardian_contract": ""
@@ -419,6 +467,11 @@
         {
             "name": "sethreshold",
             "type": "sethreshold",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "testwasig",
+            "type": "testwasig",
             "ricardian_contract": ""
         },
         {
